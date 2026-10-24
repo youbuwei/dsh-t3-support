@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+// dsh-acp: keeps the dsh ACP stdout channel as pure JSON-RPC.
+// dsh 0.2.1-rc.2 writes an informational model-listing log line to stdout;
+// reroute every non-object line to stderr so strict ACP clients stay connected.
+const { spawn } = require("child_process");
+const readline = require("readline");
+
+const child = spawn("dsh", process.argv.slice(2), {
+  stdio: ["inherit", "pipe", "inherit"],
+});
+const rl = readline.createInterface({ input: child.stdout });
+
+rl.on("line", (line) => {
+  try {
+    const value = JSON.parse(line);
+    if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+      process.stdout.write(line + "\n");
+      return;
+    }
+  } catch {}
+  process.stderr.write(line + "\n");
+});
+
+let exitInfo = null;
+let stdoutClosed = false;
+const finish = () => {
+  if (!exitInfo || !stdoutClosed) return;
+  if (exitInfo.signal) process.kill(process.pid, exitInfo.signal);
+  else process.exit(exitInfo.code ?? 0);
+};
+child.on("exit", (code, signal) => {
+  exitInfo = { code, signal };
+  finish();
+});
+rl.on("close", () => {
+  stdoutClosed = true;
+  finish();
+});

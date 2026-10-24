@@ -1,0 +1,13 @@
+# dsh-t3-support provider registry.
+# Each entry becomes one route under the llm-pi-ai providers config.
+# Add future models by adding an entry here; no script changes needed.
+
+glm-cn:
+  route: zai-coding-cn
+  apiKeyEnv: ZAI_CODING_CN_API_KEY
+  displayName: GLM Coding Plan
+
+zai-intl:
+  route: zai
+  apiKeyEnv: ZAI_API_KEY
+  displayName: Z.AI
