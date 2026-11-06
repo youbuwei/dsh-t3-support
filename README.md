@@ -4,6 +4,16 @@
 
 通过 `providers.yml` 数据文件扩展模型 provider，无需修改安装脚本。
 
+## Agent skill：一句话接入其他厂商模型
+
+dsh 以 ACP 方式接入 T3 Code 时，默认只支持 DeepSeek 官方模型。本仓库自带 agent skill：根目录的 `SKILL.md`。在支持 skills 的 agent 客户端中于本仓库目录内工作时，直接说"帮我加上某个模型"，agent 会自动查注册表、改 `providers.yml`、跑 install 并验证，无需手动执行下文步骤。
+
+想在任意目录使用，可把它链接到自己 agent 的 skills 目录（Codex 为 `~/.codex/skills/`）：
+
+```bash
+ln -s "$(pwd)" ~/.codex/skills/dsh-t3-support
+```
+
 ## 模型路由
 
 ### 可用 provider
