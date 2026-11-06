@@ -3,19 +3,17 @@ set -euo pipefail
 
 PROFILE="acp"
 REMOVE=()
-REMOVE_SHIM=0
 REMOVE_ALL=0
 BEGIN_MARKER="# >>> dsh-t3-support managed block >>>"
 END_MARKER="# <<< dsh-t3-support managed block <<<"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY="$SCRIPT_DIR/providers.yml"
-SHIM_DST="$HOME/.local/bin/dsh-acp"
 
 usage() {
   cat <<'EOF'
-Usage: ./uninstall.sh [--profile NAME] [--provider ID]... [--remove-shim] [--all]
+Usage: ./uninstall.sh [--profile NAME] [--provider ID]... [--all]
 
-Removes provider routes and/or the ACP stdout shim installed by dsh-t3-support.
+Removes provider routes installed by dsh-t3-support.
 EOF
 }
 
@@ -39,7 +37,6 @@ while [[ $# -gt 0 ]]; do
     --provider)
       [[ $# -ge 2 ]] || { echo "error: --provider needs a value" >&2; exit 2; }
       REMOVE+=("$2"); shift 2 ;;
-    --remove-shim) REMOVE_SHIM=1; shift ;;
     --all) REMOVE_ALL=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
@@ -48,10 +45,9 @@ done
 
 if [[ "$REMOVE_ALL" -eq 1 ]]; then
   REMOVE=($(registry_ids))
-  REMOVE_SHIM=1
 fi
 
-if [[ ${#REMOVE[@]} -eq 0 && "$REMOVE_SHIM" -eq 0 ]]; then
+if [[ ${#REMOVE[@]} -eq 0 ]]; then
   usage >&2
   exit 2
 fi
@@ -74,13 +70,13 @@ if [[ -f "$PATCH_FILE" ]] && grep -qF "$BEGIN_MARKER" "$PATCH_FILE"; then
     inblock && /^      [A-Za-z0-9_.-]+:$/ { sub(/:$/, ""); sub(/^ +/, ""); print }
   ' "$PATCH_FILE")"
 
-  KEEP=()
-  for id in $(registry_ids); do
+KEEP=()
+for id in $(registry_ids); do
   route="$(registry_field "$id" route)"
   if grep -qx "$route" <<<"$CURRENT" && ! printf '%s\n' "${REMOVE[@]}" 2>/dev/null | grep -qx "$id"; then
-      KEEP+=("$id")
-    fi
-  done
+    KEEP+=("$id")
+  fi
+done
 
   if [[ ${#KEEP[@]} -gt 0 ]]; then
     {
@@ -109,13 +105,4 @@ if [[ -f "$PATCH_FILE" ]] && grep -qF "$BEGIN_MARKER" "$PATCH_FILE"; then
   fi
 elif [[ -f "$PATCH_FILE" ]]; then
   echo "providers: no managed block in $PATCH_FILE"
-fi
-
-if [[ "$REMOVE_SHIM" -eq 1 ]]; then
-  if [[ -f "$SHIM_DST" ]]; then
-    rm -f "$SHIM_DST"
-    echo "shim     : removed $SHIM_DST"
-  else
-    echo "shim     : not installed"
-  fi
 fi

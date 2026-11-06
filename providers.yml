@@ -11,3 +11,48 @@ zai-intl:
   route: zai
   apiKeyEnv: ZAI_API_KEY
   displayName: Z.AI
+
+openai:
+  route: openai
+  apiKeyEnv: OPENAI_API_KEY
+  displayName: OpenAI
+
+anthropic:
+  route: anthropic
+  apiKeyEnv: ANTHROPIC_API_KEY
+  displayName: Anthropic
+
+gemini:
+  route: google
+  apiKeyEnv: GEMINI_API_KEY
+  displayName: Google Gemini
+
+openrouter:
+  route: openrouter
+  apiKeyEnv: OPENROUTER_API_KEY
+  displayName: OpenRouter
+
+groq:
+  route: groq
+  apiKeyEnv: GROQ_API_KEY
+  displayName: Groq
+
+together:
+  route: together
+  apiKeyEnv: TOGETHER_API_KEY
+  displayName: Together AI
+
+qwen:
+  route: qwen-token-plan
+  apiKeyEnv: QWEN_TOKEN_PLAN_API_KEY
+  displayName: Qwen Token Plan
+
+moonshot:
+  route: moonshotai
+  apiKeyEnv: MOONSHOT_API_KEY
+  displayName: Moonshot AI
+
+xai:
+  route: xai
+  apiKeyEnv: XAI_API_KEY
+  displayName: xAI

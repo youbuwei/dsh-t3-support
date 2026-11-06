@@ -3,25 +3,21 @@ set -euo pipefail
 
 PROFILE="acp"
 FORCE=0
-WITH_SHIM=0
 REQUESTED=()
 BEGIN_MARKER="# >>> dsh-t3-support managed block >>>"
 END_MARKER="# <<< dsh-t3-support managed block <<<"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REGISTRY="$SCRIPT_DIR/providers.yml"
-SHIM_SRC="$SCRIPT_DIR/bin/dsh-acp"
-SHIM_DST="$HOME/.local/bin/dsh-acp"
 
 usage() {
   cat <<'EOF'
-Usage: ./install.sh [--profile NAME] [--provider ID]... [--with-shim] [--force]
+Usage: ./install.sh [--profile NAME] [--provider ID]... [--force]
 
-Enables model provider routes and/or the ACP stdout shim for a dsh profile.
+Enables model provider routes for a dsh profile.
 
 Options:
   --profile NAME  dsh profile to patch (default: acp)
   --provider ID   enable a provider from providers.yml (repeatable)
-  --with-shim     install bin/dsh-acp to ~/.local/bin
   --list-providers
   --force         allow installing beside a manual llm-pi-ai patch
 EOF
@@ -47,7 +43,6 @@ while [[ $# -gt 0 ]]; do
     --provider)
       [[ $# -ge 2 ]] || { echo "error: --provider needs a value" >&2; exit 2; }
       REQUESTED+=("$2"); shift 2 ;;
-    --with-shim) WITH_SHIM=1; shift ;;
     --list-providers)
       registry_ids; exit 0 ;;
     --force) FORCE=1; shift ;;
@@ -55,6 +50,11 @@ while [[ $# -gt 0 ]]; do
     *) echo "error: unknown argument: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
+
+if [[ ${#REQUESTED[@]} -eq 0 ]]; then
+  usage >&2
+  exit 2
+fi
 
 if [[ ! -f "$REGISTRY" ]]; then
   echo "error: registry not found: $REGISTRY" >&2; exit 1
@@ -135,17 +135,6 @@ if [[ ${#ENABLED[@]} -gt 0 ]]; then
 else
   mv "$BASE" "$PATCH_FILE"; trap - EXIT
   echo "providers: none enabled"
-fi
-
-if [[ "$WITH_SHIM" -eq 1 ]]; then
-  mkdir -p "$(dirname "$SHIM_DST")"
-  cp "$SHIM_SRC" "$SHIM_DST"
-  chmod +x "$SHIM_DST"
-  echo "shim     : installed $SHIM_DST"
-  case ":$PATH:" in
-    *":$(dirname "$SHIM_DST"):"*) ;;
-    *) echo "warning : $(dirname "$SHIM_DST") is not on PATH" >&2 ;;
-  esac
 fi
 
 if command -v dsh >/dev/null 2>&1; then
